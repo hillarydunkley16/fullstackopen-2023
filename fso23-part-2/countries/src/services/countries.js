@@ -6,5 +6,5 @@ const getAll = () => {
 }
 
 export default {
-    getAll
+    getAll: getAll
 }
