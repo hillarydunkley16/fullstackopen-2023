@@ -22,7 +22,12 @@ const CountryInfo = ({country, weather}) => {
         </ul>
         <img src = {country.flag}/>
         <h3>Weather in {country.capital}</h3>
-        {/* <p>{weather}</p> */}
+        <ul>
+        {weather.map((item, index) => (
+          <li key={index}>Temperature is {item.main.temp}</li>
+        ))}
+      </ul>
+      {/* <p>Temperature is {weather.main.temp}</p> */}
       </>
     );
 };
@@ -107,41 +112,37 @@ function App() {
           area: country.area || 0,
           languages: country.languages ? country.languages : [],
           flag: country.flags?.png || '',
-          latlng: country.latlng? country.latlng : [] // You can use another property if needed     
+          latlng: country.latlng? country.latlng : [], // You can use another property if needed  
+          weather: callWeatherApi(country)
         }
       });
       setCountries(formattedCountries);
      
-    
-    // Promise.all(currentWeather)
-    // .then(async (response) => {
-    //   const weatherresponse = await response[0].json()
-    // })
-      // console.log("Countries" , formattedCountries); 
+      // Promise.all(
+      //   formattedCountries.map((country) =>
+      //     callWeatherApi(country).then((weather) => ({ ...country, weather }))
+      //   )
+      // ).then((countriesWithWeather) => {
+      //   setCountries(countriesWithWeather);
+      // });
     })
     .catch((error) => console.log(error))
   }, []);
 
   
-  // const generateWeather = (country) => {
-  //   axios.get(`${url}/weather?lat=${country.latlng[0]}&lon=${country.latlng[1]}&appid=${key}`)
-  //   .then(async(response) => {
-  //     const weatherResponse = response.data 
-  //     setWeather(weatherResponse)
-  //     console.log(weatherResponse); 
-  //     return weatherResponse
-  //   })
-  //   .catch((error) => console.log(error)); 
-  // }
   const callWeatherApi = async (country) => {
-    axios.get(`${url}/weather?lat=${country.latlng[0]}&lon=${country.latlng[1]}&appid=${api_key}`)
-    .then(async (response) => {
-      const dataResponse = await response.data; 
-      console.log(dataResponse); 
-      setWeather(dataResponse); 
-      return dataResponse; 
-    })
-    .catch((error) => console.log(error)); 
+    try {
+      const response = await axios.get(
+        `${url}/weather?lat=${country.latlng[0]}&lon=${country.latlng[1]}&appid=${api_key}&units=metric`
+      );
+      const weatherData = response.data;
+      // console.log(typeof weatherData);
+      console.log(weatherData);
+      return weatherData;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
   
   return (
@@ -169,17 +170,5 @@ function App() {
     </>
   )
 }
-// if(suggestions.length === 1){
-//   displayContent = suggestions.map((country) => {
-//     return(<CountryInfo key = {country.name.common} country = {country}/>)
-//   })
-// }else if (suggestions.length <= 10){
-//   displayContent = suggestions.map((country) => {
-//     return(<p key = {country.name.common}>{country.name.common}</p>)
-//   })
-// }else if(query == ''){
-//   displayContent = <p>Type in a country</p>
-// }else{
-//   displayContent = <p>Too many matches </p>
-// }
+
 export default App
