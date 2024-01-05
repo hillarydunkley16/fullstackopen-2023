@@ -87,46 +87,42 @@ function App() {
   }
   //change this to async - await, need to set weather
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const countryResponse = await axios.get(
-          'https://studies.cs.helsinki.fi/restcountries/api/all'
-        );
-  
-        const countryData = countryResponse.data;
-  
-        // Fetch weather data for all countries
-        const weatherPromises = countryData.map((country) =>
-          callWeatherApi(country)
-        );
-  
-        // Wait for all weather API calls to complete
-        const weatherData = await Promise.all(weatherPromises);
-  
-        // Combine country and weather data
-        const formattedCountries = countryData.map((country, index) => ({
-          ...country,
-          weather: weatherData[index],
-        }));
-  
-        // Update the state with the combined data
+    const getCountry = async () => {
+      try{
+        await axios.get('https://studies.cs.helsinki.fi/restcountries/api/all')
+      .then((response) => { 
+        // console.log(response.data); 
+        const formattedCountries = response.data.map((country) => {
+          return{
+            name: country.name,
+            capital:  Array.isArray(country.capital)
+            ? String(country.capital[0])
+            : country.capital || "", 
+            area: country.area || 0,
+            languages: country.languages ? country.languages : [],
+            flag: country.flags?.png || '',
+            latlng: country.latlng? country.latlng : [], // You can use another property if needed  
+            weather: callWeatherApi(country)
+          }
+        });
         setCountries(formattedCountries);
-      } catch (error) {
+        // setWeather(weather)
+      })
+      }
+      catch(error){
         console.log(error);
       }
-    };
-  
-    fetchData();
+    }
+    getCountry(); 
   }, []);
+
   
   const callWeatherApi = async (country) => {
     try {
       const response = await axios.get(
         `${url}/weather?lat=${country.latlng[0]}&lon=${country.latlng[1]}&appid=${api_key}&units=metric`
       );
-
       const weatherData = response.data;
-      
       setWeather(weatherData); 
       return weatherData;
     } catch (error) {
