@@ -3,12 +3,8 @@ import React from 'react'
 import axios from 'axios';
 import countries from './services/countries';
 const api_key = import.meta.env.VITE_WEATHER_API_KEY;
-
-// const key = '0ef79394e8e1d5e6e9b1dba0c2130922'; 
 const url = 'https://api.openweathermap.org/data/2.5'
 const CountryInfo = ({country, weather}) => {
-    // const country = suggestions[0]; // Access the first country in suggestions array
-    // console.log(country); 
     return (
       <>
         <h1>{country.name.common}</h1>
@@ -22,12 +18,7 @@ const CountryInfo = ({country, weather}) => {
         </ul>
         <img src = {country.flag}/>
         <h3>Weather in {country.capital}</h3>
-        <ul>
-        {weather.map((item, index) => (
-          <li key={index}>Temperature is {item.main.temp}</li>
-        ))}
-      </ul>
-      {/* <p>Temperature is {weather.main.temp}</p> */}
+        <p>Temperature is {weather.main.temp}</p> 
       </>
     );
 };
@@ -82,7 +73,6 @@ function App() {
   const filtered = (query) => {
     return countries.filter((country) => {
       const includesQuery = country.name.common.toLowerCase().includes(query.toLowerCase())
-      // console.log("matches " , includesQuery);
       return includesQuery
     } )
 
@@ -90,54 +80,54 @@ function App() {
   const updateSuggestions = (query) => {
     setSuggestions(filtered(query));
     console.log(suggestions); 
-    // console.log(suggestions.length); 
   }
   const showCountryInfo = (country) => {
     console.log("button clicked"); 
     setSelectedCountry(country)
   }
+  //change this to async - await, need to set weather
   useEffect(() => {
-    axios.get('https://studies.cs.helsinki.fi/restcountries/api/all')
-    .then((response) => { 
-      // console.log(response.data); 
-      const formattedCountries = response.data.map((country) => {
-        // console.log('Current country:', country);
-        // console.log("data type of languages is", typeof country.languages); 
-        // callWeatherApi(country)
-        return{
-          name: country.name,
-          capital:  Array.isArray(country.capital)
-          ? String(country.capital[0])
-          : country.capital || "", 
-          area: country.area || 0,
-          languages: country.languages ? country.languages : [],
-          flag: country.flags?.png || '',
-          latlng: country.latlng? country.latlng : [], // You can use another property if needed  
-          weather: callWeatherApi(country)
-        }
-      });
-      setCountries(formattedCountries);
-     
-      // Promise.all(
-      //   formattedCountries.map((country) =>
-      //     callWeatherApi(country).then((weather) => ({ ...country, weather }))
-      //   )
-      // ).then((countriesWithWeather) => {
-      //   setCountries(countriesWithWeather);
-      // });
-    })
-    .catch((error) => console.log(error))
+    const fetchData = async () => {
+      try {
+        const countryResponse = await axios.get(
+          'https://studies.cs.helsinki.fi/restcountries/api/all'
+        );
+  
+        const countryData = countryResponse.data;
+  
+        // Fetch weather data for all countries
+        const weatherPromises = countryData.map((country) =>
+          callWeatherApi(country)
+        );
+  
+        // Wait for all weather API calls to complete
+        const weatherData = await Promise.all(weatherPromises);
+  
+        // Combine country and weather data
+        const formattedCountries = countryData.map((country, index) => ({
+          ...country,
+          weather: weatherData[index],
+        }));
+  
+        // Update the state with the combined data
+        setCountries(formattedCountries);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  
+    fetchData();
   }, []);
-
   
   const callWeatherApi = async (country) => {
     try {
       const response = await axios.get(
         `${url}/weather?lat=${country.latlng[0]}&lon=${country.latlng[1]}&appid=${api_key}&units=metric`
       );
+
       const weatherData = response.data;
-      // console.log(typeof weatherData);
-      console.log(weatherData);
+      
+      setWeather(weatherData); 
       return weatherData;
     } catch (error) {
       console.log(error);
