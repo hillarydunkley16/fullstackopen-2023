@@ -131,7 +131,7 @@ function App() {
         setWeather(response.data); 
       }
       // setWeather(response.data);
-      return response;
+      return response.data;
     } catch (error) {
       console.log(error);
       return null;
