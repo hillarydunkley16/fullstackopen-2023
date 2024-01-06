@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import React from 'react'
 import axios from 'axios';
-import countries from './services/countries';
+
 const api_key = import.meta.env.VITE_WEATHER_API_KEY;
 const url = 'https://api.openweathermap.org/data/2.5'
 const CountryInfo = ({country, weather}) => {
+  
     return (
       <>
         <h1>{country.name.common}</h1>
@@ -18,7 +19,10 @@ const CountryInfo = ({country, weather}) => {
         </ul>
         <img src = {country.flag}/>
         <h3>Weather in {country.capital}</h3>
-        <p>Temperature is {weather.main.temp}</p> 
+       {/* {Object.values(weather.main).map((detail) => (
+        <li key = {country}>{detail}</li>
+       ))} */}
+        {console.log(typeof weather.main.temp)}
       </>
     );
 };
@@ -35,7 +39,7 @@ function App() {
         main: ""
       }, 
       main: {
-        temp: 0,
+        temp: 0
       },
       wind: {
         speed: 0,
@@ -115,16 +119,19 @@ function App() {
     }
     getCountry(); 
   }, []);
-
   
   const callWeatherApi = async (country) => {
     try {
       const response = await axios.get(
         `${url}/weather?lat=${country.latlng[0]}&lon=${country.latlng[1]}&appid=${api_key}&units=metric`
       );
-      const weatherData = response.data;
-      setWeather(weatherData); 
-      return weatherData;
+      // const weatherData = response.data;
+      // console.log(weatherData.main.temp); 
+      if(response.data.length > 0){
+        setWeather(response.data); 
+      }
+      // setWeather(response.data);
+      return response;
     } catch (error) {
       console.log(error);
       return null;
