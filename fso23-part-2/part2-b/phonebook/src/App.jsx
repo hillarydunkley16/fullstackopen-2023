@@ -3,6 +3,7 @@ import React from 'react'
 import personService from './services/persons'
 import Person from './components/Person'
 import './index.css'
+import axios from 'axios'
 
 const Filter = (props) => {
   return (
@@ -54,7 +55,18 @@ const App = () => {
   const [message, setMessage] = useState('')
   // const [duplicateName, setDuplicateName] = useState(false)
 
- 
+  // useEffect(() => {
+  //   axios.get('http://localhost:3001/persons')
+  //   .then((response) => {
+  //     persons = response.data.map((person) => {
+  //       return {
+  //         name: person.name, 
+  //         number: person.number, 
+  //         id: person
+  //       }
+  //     })
+  //   })
+  // })
   const personsToShow = persons.filter((el) => {
     if(searchInput === ''){
       return el
@@ -109,17 +121,21 @@ const App = () => {
 
     console.log('End of addName function');
   }
+  //input handler 
   const inputHandler = (event) => {
     setSearchInput(event.target.value.toLowerCase())
   }
+  //change the name of an entry
   const handleNameChange = (event) => {
     console.log(event.target.value)
     setNewName(event.target.value)
   }
+  //change the phone number of an entry
   const handleNumChange = (event) => {
     console.log(event.target.value)
     setNewNumber(event.target.value)
   }
+  //remove an entry
   const removeName = async (id) => {
     const confirmDeletion = window.confirm(`Do you want to delete this user?`);
 
@@ -134,6 +150,7 @@ const App = () => {
       window.alert('Sorry, something went wrong: ' + error.response.data.error);
     }
   }
+  //handling the same name
   const handleSameName = async (id, number, name) => {
     try{
       await personService.update(id,  { number: number })

@@ -14,15 +14,17 @@ const CountryInfo = ({country, weather}) => {
         <b>languages</b>
         <ul>
         {Object.values(country.languages).map((language) => (
-            <li key={country}>{language}</li>
+            <li key={`${country.name.common}-${country.capital}`}>{language}</li>
           ))}
         </ul>
         <img src = {country.flag}/>
         <h3>Weather in {country.capital}</h3>
-       {/* {Object.values(weather.main).map((detail) => (
-        <li key = {country}>{detail}</li>
-       ))} */}
-        {console.log(typeof weather.main.temp)}
+      
+        {/* {weather && weather[0] && weather[0].main && (
+        <p>Temperature is {weather.temp}</p>
+      )} */}
+      {/* {console.log(`temperature is ${weather[0].main.temp}`)} */}
+      {/* {console.log(`temperature of ${country.name.common} is ${country.weather.temp}`)} */}
       </>
     );
 };
@@ -38,12 +40,8 @@ function App() {
         id: 0, 
         main: ""
       }, 
-      main: {
-        temp: 0
-      },
-      wind: {
-        speed: 0,
-      }
+      main: {temp: 0},
+      wind: {speed: 0,}
     }
   ])
   const [suggestions, setSuggestions] = useState([
@@ -94,9 +92,9 @@ function App() {
     const getCountry = async () => {
       try{
         await axios.get('https://studies.cs.helsinki.fi/restcountries/api/all')
-      .then((response) => { 
+      .then(async (response) => { 
         // console.log(response.data); 
-        const formattedCountries = response.data.map((country) => {
+        const formattedCountries = await Promise.all(response.data.map( (country) => {
           return{
             name: country.name,
             capital:  Array.isArray(country.capital)
@@ -108,8 +106,10 @@ function App() {
             latlng: country.latlng? country.latlng : [], // You can use another property if needed  
             weather: callWeatherApi(country)
           }
-        });
+        }))
         setCountries(formattedCountries);
+        setWeather(formattedCountries.map(country => country.weather)); 
+        
         // setWeather(weather)
       })
       }
@@ -125,13 +125,20 @@ function App() {
       const response = await axios.get(
         `${url}/weather?lat=${country.latlng[0]}&lon=${country.latlng[1]}&appid=${api_key}&units=metric`
       );
-      // const weatherData = response.data;
+      // console.log(response.data); 
       // console.log(weatherData.main.temp); 
       if(response.data.length > 0){
-        setWeather(response.data); 
+        return {
+          description: response.data.weather.description,
+          temp: response.data.main.temp,
+          wind_speed: response.data.wind.speed,
+        };
       }
-      // setWeather(response.data);
-      return response.data;
+      return {
+        description: "",
+        temp: 0,
+        wind_speed: 0,
+      };
     } catch (error) {
       console.log(error);
       return null;
